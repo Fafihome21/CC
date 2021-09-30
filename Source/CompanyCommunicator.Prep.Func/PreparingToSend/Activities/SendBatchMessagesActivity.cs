@@ -11,6 +11,7 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Prep.Func.PreparingToSend
     using System.Threading.Tasks;
     using Microsoft.Azure.WebJobs;
     using Microsoft.Azure.WebJobs.Extensions.DurableTask;
+    using Microsoft.Teams.Apps.CompanyCommunicator.Common.Repositories.NotificationData;
     using Microsoft.Teams.Apps.CompanyCommunicator.Common.Repositories.SentNotificationData;
     using Microsoft.Teams.Apps.CompanyCommunicator.Common.Repositories.TeamData;
     using Microsoft.Teams.Apps.CompanyCommunicator.Common.Repositories.UserData;
@@ -40,11 +41,11 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Prep.Func.PreparingToSend
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         [FunctionName(FunctionNames.SendBatchMessagesActivity)]
         public async Task RunAsync(
-            [ActivityTrigger](string notificationId, List<SentNotificationDataEntity> batch) input)
+            [ActivityTrigger](NotificationDataEntity notification, List<SentNotificationDataEntity> batch) input)
         {
-            if (input.notificationId == null)
+            if (input.notification == null)
             {
-                throw new ArgumentNullException(nameof(input.notificationId));
+                throw new ArgumentNullException(nameof(input.notification));
             }
 
             if (input.batch == null)
@@ -57,7 +58,8 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Prep.Func.PreparingToSend
                 {
                     return new SendQueueMessageContent()
                     {
-                        NotificationId = input.notificationId,
+                        NotificationId = input.notification.Id,
+                        IsImportant = input.notification.IsImportant,
                         RecipientData = this.ConvertToRecipientData(recipient),
                     };
                 });
@@ -84,7 +86,6 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Prep.Func.PreparingToSend
                         ConversationId = recipient.ConversationId,
                         ServiceUrl = recipient.ServiceUrl,
                         TenantId = recipient.TenantId,
-                        UserType = recipient.UserType,
                     },
                 };
             }
