@@ -594,7 +594,7 @@ class NewMessage extends React.Component<INewMessageProps, formState> {
                                                         )
                                                     },
                                                 },
-                                                {
+                                                /*{
                                                     name: "allUsers",
                                                     key: "allUsers",
                                                     value: "allUsers",
@@ -612,6 +612,7 @@ class NewMessage extends React.Component<INewMessageProps, formState> {
                                                         )
                                                     },
                                                 },
+                                                */
                                                 {
                                                     name: "groups",
                                                     key: "groups",
