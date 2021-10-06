@@ -30,6 +30,9 @@ export interface IMessage {
     reactions?: string;
     responses?: string;
     succeeded?: string;
+    viewsCount?: string;
+    clicksCount?: string;
+    acknowledgementsCount?: string;
     failed?: string;
     unknown?: string;
     sentDate?: string;
@@ -135,6 +138,9 @@ class StatusTaskModule extends React.Component<StatusTaskModuleProps, IStatusSta
             response.data.sendingStartedDate = formatDate(response.data.sendingStartedDate);
             response.data.sentDate = formatDate(response.data.sentDate);
             response.data.succeeded = formatNumber(response.data.succeeded);
+            response.data.viewsCount = formatNumber(response.data.viewsCount);
+            response.data.clicksCount = formatNumber(response.data.clicksCount);
+            response.data.acknowledgementsCount = formatNumber(response.data.acknowledgementsCount);
             response.data.failed = formatNumber(response.data.failed);
             response.data.unknown = response.data.unknown && formatNumber(response.data.unknown);
             this.setState({
@@ -179,6 +185,12 @@ class StatusTaskModule extends React.Component<StatusTaskModuleProps, IStatusSta
                                         <div className="contentField">
                                             <h3>{this.localize("Results")}</h3>
                                             <label>{this.localize("Success", { "SuccessCount": this.state.message.succeeded })}</label>
+                                            <br />
+                                            <label>{this.localize("Views", { "ViewsCount": this.state.message.viewsCount })}</label>
+                                            <br />
+                                            <label>{this.localize("Clicks", { "ClicksCount": this.state.message.clicksCount })}</label>
+                                            <br />
+                                            <label>{this.localize("Acknowledgements", { "AcknowledgementsCount": this.state.message.acknowledgementsCount })}</label>
                                             <br />
                                             <label>{this.localize("Failure", { "FailureCount": this.state.message.failed })}</label>
                                             <br />

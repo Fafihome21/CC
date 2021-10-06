@@ -8,8 +8,11 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Common.Services.AdaptiveCard
     using System;
     using System.Collections.Generic;
     using System.Text.Json;
+    using System.Linq;
     using AdaptiveCards;
     using Microsoft.Teams.Apps.CompanyCommunicator.Common.Repositories.NotificationData;
+    using Microsoft.Teams.Apps.CompanyCommunicator.Common.Resources;
+    using Newtonsoft.Json;
 
     /// <summary>
     /// Adaptive Card Creator service.
@@ -21,7 +24,8 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Common.Services.AdaptiveCard
         /// </summary>
         /// <param name="notificationDataEntity">Notification data entity.</param>
         /// <returns>An adaptive card.</returns>
-        public virtual AdaptiveCard CreateAdaptiveCard(NotificationDataEntity notificationDataEntity)
+        public virtual AdaptiveCard CreateAdaptiveCard(NotificationDataEntity notificationDataEntity,
+            bool acknowledged = false)
         {
             return this.CreateAdaptiveCard(
                 notificationDataEntity.Title,
@@ -30,7 +34,10 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Common.Services.AdaptiveCard
                 notificationDataEntity.Author,
                 notificationDataEntity.ButtonTitle,
                 notificationDataEntity.ButtonLink,
-                notificationDataEntity.Buttons);
+                notificationDataEntity.Buttons,
+                notificationDataEntity.Id,
+                notificationDataEntity.Ack,
+                acknowledged);
         }
 
         /// <summary>
@@ -51,7 +58,10 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Common.Services.AdaptiveCard
             string author,
             string buttonTitle,
             string buttonUrl,
-            string buttons)
+            string buttons,
+            string notificationId,
+            bool ack = false,
+            bool acknowledged = false)
         {
             var version = new AdaptiveSchemaVersion(1, 0);
             AdaptiveCard card = new AdaptiveCard(version);
@@ -66,13 +76,15 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Common.Services.AdaptiveCard
 
             if (!string.IsNullOrWhiteSpace(imageUrl))
             {
-                card.Body.Add(new AdaptiveImage()
+                var img = new AdaptiveImage()
                 {
                     Url = new Uri(imageUrl, UriKind.RelativeOrAbsolute),
                     Spacing = AdaptiveSpacing.Default,
                     Size = AdaptiveImageSize.Stretch,
                     AltText = string.Empty,
-                });
+
+                };
+                card.Body.Add(img);
             }
 
             if (!string.IsNullOrWhiteSpace(summary))
@@ -89,9 +101,21 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Common.Services.AdaptiveCard
                 card.Body.Add(new AdaptiveTextBlock()
                 {
                     Text = author,
+                    Size = AdaptiveTextSize.Default,
+                    Weight = AdaptiveTextWeight.Bolder,
+                    Wrap = true,
+                });
+            }
+
+            if (ack && !string.IsNullOrWhiteSpace(notificationId))
+            {
+                card.Body.Add(new AdaptiveTextBlock()
+                {
+                    Text = acknowledged ? Strings.AckConfirmation : Strings.AckAlert,
                     Size = AdaptiveTextSize.Small,
                     Weight = AdaptiveTextWeight.Lighter,
                     Wrap = true,
+                    Id = notificationId,
                 });
             }
 
@@ -109,13 +133,24 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Common.Services.AdaptiveCard
             if (!string.IsNullOrWhiteSpace(buttons))
             {
                 // enables case insensitive deserialization for card buttons
-                var options = new JsonSerializerOptions
+                var options = new System.Text.Json.JsonSerializerOptions
                 {
                     PropertyNameCaseInsensitive = true,
                 };
 
                 // add the buttons string to the buttons collection for the card
-                card.Actions.AddRange(JsonSerializer.Deserialize<List<AdaptiveOpenUrlAction>>(buttons, options));
+                card.Actions.AddRange(System.Text.Json.JsonSerializer.Deserialize<List<AdaptiveOpenUrlAction>>(buttons, options));
+            }
+            if (ack && !acknowledged)
+            {
+                card.Actions.Add(new AdaptiveSubmitAction()
+                {
+                    Title = Strings.AckButtonTitle,
+                    Id = "acknowledge",
+                    Data = "acknowledge",
+                    DataJson = JsonConvert.SerializeObject(
+                        new { notificationId = notificationId }),
+                });
             }
 
             return card;

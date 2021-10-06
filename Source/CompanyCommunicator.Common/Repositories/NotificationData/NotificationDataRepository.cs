@@ -18,6 +18,13 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Common.Repositories.Notificat
     public class NotificationDataRepository : BaseRepository<NotificationDataEntity>, INotificationDataRepository
     {
         /// <summary>
+        /// Maximum length of error and warning messages to save in the entity.
+        /// This limit ensures that we don't hit the Azure table storage limits for the max size of the data
+        /// in a column, and the total size of an entity.
+        /// </summary>
+        public const int MaxMessageLengthToSave = 1024;
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="NotificationDataRepository"/> class.
         /// </summary>
         /// <param name="logger">The logging service.</param>
@@ -117,6 +124,7 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Common.Repositories.Notificat
                     IsImportant = draftNotificationEntity.IsImportant,
                     IsScheduled = draftNotificationEntity.IsScheduled,
                     ScheduledDate = draftNotificationEntity.ScheduledDate,
+                    Ack = draftNotificationEntity.Ack,
                     Teams = draftNotificationEntity.Teams,
                     Rosters = draftNotificationEntity.Rosters,
                     Groups = draftNotificationEntity.Groups,
@@ -169,6 +177,7 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Common.Repositories.Notificat
                     CreatedBy = createdBy,
                     CreatedDate = DateTime.UtcNow,
                     IsDraft = true,
+                    Ack = notificationEntity.Ack,
                     Teams = notificationEntity.Teams,
                     Groups = notificationEntity.Groups,
                     Rosters = notificationEntity.Rosters,
@@ -208,8 +217,14 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Common.Repositories.Notificat
                 notificationDataEntityId);
             if (notificationDataEntity != null)
             {
-                notificationDataEntity.ErrorMessage =
-                    this.AppendNewLine(notificationDataEntity.ErrorMessage, errorMessage);
+                var newMessage = this.AppendNewLine(notificationDataEntity.ErrorMessage, errorMessage);
+
+                // Restrict the total length of stored message to avoid hitting table storage limits
+                if (newMessage.Length <= MaxMessageLengthToSave)
+                {
+                    notificationDataEntity.ErrorMessage = newMessage;
+                }
+
                 notificationDataEntity.Status = NotificationStatus.Failed.ToString();
 
                 // Set the end date as current date.
@@ -231,8 +246,14 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Common.Repositories.Notificat
                     notificationDataEntityId);
                 if (notificationDataEntity != null)
                 {
-                    notificationDataEntity.WarningMessage =
-                        this.AppendNewLine(notificationDataEntity.WarningMessage, warningMessage);
+                    var newMessage = this.AppendNewLine(notificationDataEntity.WarningMessage, warningMessage);
+
+                    // Restrict the total length of stored message to avoid hitting table storage limits
+                    if (newMessage.Length <= MaxMessageLengthToSave)
+                    {
+                        notificationDataEntity.WarningMessage = newMessage;
+                    }
+
                     await this.CreateOrUpdateAsync(notificationDataEntity);
                 }
             }

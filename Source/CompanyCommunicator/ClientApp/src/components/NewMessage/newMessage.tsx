@@ -55,6 +55,7 @@ export interface IDraftMessage {
     isScheduled: boolean, // indicates if the message is scheduled
     ScheduledDate: Date, // stores the scheduled date
     Buttons: string // stores tha card buttons (JSON)
+    ack?: boolean
 }
 
 export interface formState {
@@ -96,6 +97,7 @@ export interface formState {
     DMYMins: string, //mins selected
     futuredate: boolean, //if the date is in the future (valid schedule)
     values: any[] //button values collection
+    selectedRequestReadReceipt?: boolean
 }
 
 export interface INewMessageProps extends RouteComponentProps, WithTranslation {
@@ -139,6 +141,7 @@ class NewMessage extends React.Component<INewMessageProps, formState> {
             selectedTeams: [],
             selectedRosters: [],
             selectedGroups: [],
+            selectedRequestReadReceipt: false,
             errorImageUrlMessage: "",
             errorButtonUrlMessage: "",
             selectedSchedule: false, //scheduler option is disabled by default
@@ -378,6 +381,7 @@ class NewMessage extends React.Component<INewMessageProps, formState> {
                 selectedSchedule: draftMessageDetail.isScheduled,
                 selectedImportant: draftMessageDetail.isImportant,
                 scheduledDate: draftMessageDetail.scheduledDate,
+                selectedRequestReadReceipt: draftMessageDetail.ack,
             });
 
             // set card properties
@@ -706,6 +710,9 @@ class NewMessage extends React.Component<INewMessageProps, formState> {
                                             /></h3>
                                         </Flex>
                                         <Text size="small" align="start" content={this.localize('ImportantDescription')} />
+                                        <h3>{this.localize("SendOptions")}</h3>
+                                        <Checkbox label={this.localize("RequestReadReceipt")} checked={this.state.selectedRequestReadReceipt}
+                                            onChange={this.onRequestReadReceiptChanged} />
                                     </Flex>
                                 </Flex.Item>
                                 <Flex.Item size="size.half">
@@ -840,6 +847,13 @@ class NewMessage extends React.Component<INewMessageProps, formState> {
             selectedGroups: data.value === 'groups' ? this.state.selectedGroups : [],
             selectedGroupsNum: data.value === 'groups' ? this.state.selectedGroupsNum : 0,
         });
+    }
+
+    private onRequestReadReceiptChanged = (event: any, data: any) => {
+        this.setState({
+            selectedRequestReadReceipt: data.checked,
+        });
+        console.log(data);
     }
 
     private isSaveBtnDisabled = () => {
@@ -1011,7 +1025,8 @@ class NewMessage extends React.Component<INewMessageProps, formState> {
             isScheduled: this.state.selectedSchedule,
             isImportant: this.state.selectedImportant,
             ScheduledDate: new Date(this.state.scheduledDate),
-            Buttons: JSON.stringify(this.state.values)
+            Buttons: JSON.stringify(this.state.values),
+            ack: this.state.selectedRequestReadReceipt,
         };
 
         if (this.state.exists) {

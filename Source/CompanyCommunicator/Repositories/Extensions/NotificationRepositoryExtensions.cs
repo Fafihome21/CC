@@ -45,6 +45,7 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Repositories.Extensions
                 IsDraft = true,
                 IsScheduled = notification.IsScheduled,
                 IsImportant = notification.IsImportant,
+                Ack = notification.Ack,
                 Teams = notification.Teams,
                 Rosters = notification.Rosters,
                 Groups = notification.Groups,
