@@ -58,7 +58,7 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Prep.Func.PreparingToSend
                 {
                     return new SendQueueMessageContent()
                     {
-                        NotificationId = input.notification.Id,
+                        NotificationId = JsonConvert.SerializeObject(input.notification.Id),
                         IsImportant = input.notification.IsImportant,
                         RecipientData = this.ConvertToRecipientData(recipient),
                     };
