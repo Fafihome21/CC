@@ -54,7 +54,7 @@ export interface IDraftMessage {
     isImportant: boolean, // indicates if the message is important
     isScheduled: boolean, // indicates if the message is scheduled
     ScheduledDate: Date, // stores the scheduled date
-    Buttons: string // stores tha card buttons (JSON)
+    Buttons: string, // stores tha card buttons (JSON)
     ack?: boolean
 }
 
@@ -96,7 +96,7 @@ export interface formState {
     DMYHour: string, //hour selected
     DMYMins: string, //mins selected
     futuredate: boolean, //if the date is in the future (valid schedule)
-    values: any[] //button values collection
+    values: any[], //button values collection
     selectedRequestReadReceipt?: boolean
 }
 
