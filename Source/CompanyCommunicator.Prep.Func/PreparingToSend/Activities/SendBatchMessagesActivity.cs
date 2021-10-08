@@ -16,7 +16,6 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Prep.Func.PreparingToSend
     using Microsoft.Teams.Apps.CompanyCommunicator.Common.Repositories.TeamData;
     using Microsoft.Teams.Apps.CompanyCommunicator.Common.Repositories.UserData;
     using Microsoft.Teams.Apps.CompanyCommunicator.Common.Services.MessageQueues.SendQueue;
-    using Newtonsoft.Json;
 
     /// <summary>
     /// Sends batch messages to Send Queue.
@@ -42,11 +41,11 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Prep.Func.PreparingToSend
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         [FunctionName(FunctionNames.SendBatchMessagesActivity)]
         public async Task RunAsync(
-            [ActivityTrigger](string notificationId, List<SentNotificationDataEntity> batch) input)
+            [ActivityTrigger](NotificationDataEntity notification, List<SentNotificationDataEntity> batch) input)
         {
-            if (input.notificationId == null)
+            if (input.notification == null)
             {
-                throw new ArgumentNullException(nameof(input.notificationId));
+                throw new ArgumentNullException(nameof(input.notification));
             }
 
             if (input.batch == null)
@@ -59,8 +58,8 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Prep.Func.PreparingToSend
                 {
                     return new SendQueueMessageContent()
                     {
-                        NotificationId = input.notificationId,
-                        //IsImportant = input.notification.IsImportant,
+                        NotificationId = input.notification.Id,
+                        IsImportant = input.notification.IsImportant,
                         RecipientData = this.ConvertToRecipientData(recipient),
                     };
                 });

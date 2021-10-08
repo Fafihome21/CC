@@ -12,6 +12,7 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Prep.Func.PreparingToSend.Orc
     using Microsoft.Azure.WebJobs.Extensions.DurableTask;
     using Microsoft.Extensions.Logging;
     using Microsoft.Teams.Apps.CompanyCommunicator.Common.Extensions;
+    using Microsoft.Teams.Apps.CompanyCommunicator.Common.Repositories.NotificationData;
     using Microsoft.Teams.Apps.CompanyCommunicator.Common.Repositories.SentNotificationData;
     using Microsoft.Teams.Apps.CompanyCommunicator.Common.Services.MessageQueues.SendQueue;
     using Microsoft.Teams.Apps.CompanyCommunicator.Common.Utilities;
@@ -39,6 +40,15 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Prep.Func.PreparingToSend.Orc
             [OrchestrationTrigger] IDurableOrchestrationContext context,
             ILogger log)
         {
+
+            var notification = context.GetInput<NotificationDataEntity>();
+
+            // Update notification status.
+            await context.CallActivityWithRetryAsync(
+                FunctionNames.UpdateNotificationStatusActivity,
+                FunctionSettings.DefaultRetryOptions,
+                (notification.Id, NotificationStatus.Sending));
+            
             var batchPartitionKey = context.GetInput<string>();
             var notificationId = PartitionKeyUtility.GetNotificationIdFromBatchPartitionKey(batchPartitionKey);
             var batchId = PartitionKeyUtility.GetBatchIdFromBatchPartitionKey(batchPartitionKey);
@@ -74,7 +84,7 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Prep.Func.PreparingToSend.Orc
                 var task = context.CallActivityWithRetryAsync(
                     FunctionNames.SendBatchMessagesActivity,
                     FunctionSettings.DefaultRetryOptions,
-                    (notificationId, batches[batchIndex]));
+                    (notification, batches[batchIndex]));
 
                 tasks.Add(task);
             }
