@@ -45,12 +45,12 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Prep.Func.PreparingToSend
         {
             if (input.notification == null)
             {
-                throw new ArgumentNullException(nameof(input.notification));
+                throw new ArgumentNullException(nameof(input.notification), "Issue at step1");
             }
 
             if (input.batch == null)
             {
-                throw new ArgumentNullException(nameof(input.batch));
+                throw new ArgumentNullException(nameof(input.batch), "the issue at step 2");
             }
 
             var messageBatch = input.batch.Select(

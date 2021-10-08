@@ -42,13 +42,6 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Prep.Func.PreparingToSend.Orc
         {
 
             var notification = context.GetInput<NotificationDataEntity>();
-
-            // Update notification status.
-            await context.CallActivityWithRetryAsync(
-                FunctionNames.UpdateNotificationStatusActivity,
-                FunctionSettings.DefaultRetryOptions,
-                (notification.Id, NotificationStatus.Sending));
-            
             var batchPartitionKey = context.GetInput<string>();
             var notificationId = PartitionKeyUtility.GetNotificationIdFromBatchPartitionKey(batchPartitionKey);
             var batchId = PartitionKeyUtility.GetBatchIdFromBatchPartitionKey(batchPartitionKey);
